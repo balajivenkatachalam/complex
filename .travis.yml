@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t a0987654321/complex -f ./client/Dockerfile.dev ./client
+script:
+  - docker run -e CI=true a0987654321/complex npm test -- --coverage
+
+after_success:
+  - docker build -t a0987654321/complex-client ./client
+  - docker build -t a0987654321/complex-nginx ./nginx
+  - docker build -t a0987654321/complex-server ./server
+  - docker build -t a0987654321/complex-worker ./worker
+  # Login into the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to dockerhub
+  - docker push a0987654321/complex-client
+  - docker push a0987654321/complex-nginx
+  - docker push a0987654321/complex-server
+  - docker push a0987654321/complex-worker
+
+language: generic
